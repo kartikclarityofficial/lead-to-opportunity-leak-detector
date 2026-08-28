@@ -1,91 +1,756 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lead to Opportunity Leak Detector™</title>
-  <meta name="description" content="Lead to Opportunity Leak Detector™">
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #0b1020;
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 900px;
-      text-align: center;
-      padding: 60px 30px;
-    }
-
-    h1 {
-      font-size: clamp(32px, 6vw, 64px);
-      margin: 0 0 20px;
-      line-height: 1.05;
-    }
-
-    p {
-      font-size: 18px;
-      line-height: 1.6;
-      color: #b8c0d9;
-      margin: 0 auto 30px;
-      max-width: 650px;
-    }
-
-    .status {
-      display: inline-block;
-      padding: 10px 18px;
-      border: 1px solid #33405f;
-      border-radius: 999px;
-      margin-bottom: 30px;
-      color: #8ff0b2;
-      background: #121a2d;
-    }
-
-    .button {
-      display: inline-block;
-      padding: 14px 24px;
-      border-radius: 10px;
-      background: #ffffff;
-      color: #0b1020;
-      text-decoration: none;
-      font-weight: 700;
-    }
-
-    .button:hover {
-      opacity: 0.9;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lead → Opportunity Leak Detector™</title>
+<meta name="description" content="A structured revenue diagnostic that finds exactly where qualified demand leaks out of your funnel before it becomes pipeline." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  :root{
+    --ink:#12151A; --paper:#F2F1EA; --panel:#FFFFFF; --line:#DEDCCF;
+    --muted:#75766B; --muted-2:#9A9B8E; --signal:#2A5CE0; --signal-dim:#DCE6FB;
+    --sealed:#0E9C89; --sealed-dim:#DAF1EC;
+    --critical:#DD3A2C; --high:#F2792A; --moderate:#E8A93A; --low:#0E9C89;
+    --font-display:'Space Grotesk',sans-serif; --font-body:'Inter',sans-serif; --font-mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased;}
+  .grid-bg{
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:44px 44px; background-position:center top;
+    -webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 0%, black 30%, transparent 80%);
+    mask-image:radial-gradient(ellipse 70% 60% at 50% 0%, black 30%, transparent 80%);
+    opacity:0.55;
+  }
+  .disp{font-family:var(--font-display);letter-spacing:-0.02em;}
+  .mono{font-family:var(--font-mono);}
+  .bracket{position:relative;}
+  .bracket::before,.bracket::after{content:'';position:absolute;width:10px;height:10px;border:2px solid var(--ink);opacity:0.28;}
+  .bracket::before{top:-1px;left:-1px;border-right:none;border-bottom:none;}
+  .bracket::after{bottom:-1px;right:-1px;border-left:none;border-top:none;}
+  .fade-in{animation:fadeIn .5s ease both;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes flow{0%{stroke-dashoffset:24;}100%{stroke-dashoffset:0;}}
+  .flow-line{stroke-dasharray:5 5; animation:flow 0.9s linear infinite;}
+  @keyframes needleIn{from{transform:rotate(-90deg);}}
+  .needle{transition:transform 1.1s cubic-bezier(.22,1,.36,1);}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .spin{animation:spin 1s linear infinite;}
+  @media (prefers-reduced-motion: reduce){
+    .flow-line{animation:none;} .needle{transition:none;} .spin{animation:none;} .fade-in{animation:none;}
+  }
+  ::selection{background:var(--signal);color:#fff;}
+  button{font-family:inherit;cursor:pointer;}
+  .btn-primary{background:var(--ink);color:#fff;border:1px solid var(--ink);}
+  .btn-primary:hover{background:var(--signal);border-color:var(--signal);}
+  .btn-primary:disabled{opacity:0.3;cursor:not-allowed;background:var(--ink);border-color:var(--ink);}
+  .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--ink);}
+  .kbd{font-family:var(--font-mono);font-size:10px;padding:2px 6px;border:1px solid var(--line);border-radius:3px;color:var(--muted);background:#fff;}
+  .scrollbar-none::-webkit-scrollbar{display:none;}
+  a{color:inherit;}
+</style>
 </head>
-
 <body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const {useState,useEffect,useCallback,useMemo,useRef} = React;
 
-  <main class="container">
-    <div class="status">Application Online</div>
+/* ---------------- icons (inline, lucide-style) ---------------- */
+const Ic = (paths, extra={}) => (p) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={extra.w||1.75}
+       strokeLinecap="round" strokeLinejoin="round" className={p.className} style={p.style}>{paths}</svg>
+);
+const ArrowRight = Ic(<><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></>);
+const ArrowLeft  = Ic(<><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></>);
+const SearchIc   = Ic(<><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></>);
+const AlertTri   = Ic(<><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>);
+const CheckCirc  = Ic(<><path d="M21.8 10A10 10 0 1 1 17 3.34"/><path d="m9 11 3 3L22 4"/></>);
+const AlertCirc  = Ic(<><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>);
+const TrendDown  = Ic(<><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></>);
+const TargetIc   = Ic(<><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></>);
+const ActivityIc = Ic(<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>);
+const ZapIc      = Ic(<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>);
+const HomeIc     = Ic(<><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>);
+const FileTextIc = Ic(<><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></>);
+const BarChartIc = Ic(<><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></>);
+const XIc        = Ic(<><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>);
+const DropletIc  = Ic(<path d="M12 2.7s6.5 7.3 6.5 12a6.5 6.5 0 1 1-13 0c0-4.7 6.5-12 6.5-12z"/>);
 
-    <h1>Lead to Opportunity Leak Detector™</h1>
+/* ---------------- data: diagnostic questions (unchanged scoring logic) ---------------- */
+const QUESTIONS = [
+  { id:'lead-scoring', stage:'lead', text:'Are leads scored consistently using explicit criteria?', context:'Inconsistent lead scoring creates unpredictable qualification outcomes and wastes sales capacity on poor-fit opportunities.', options:['Never','Rarely','Sometimes','Usually','Always'], weight:8 },
+  { id:'icp-criteria', stage:'lead', text:'Are ideal customer profile (ICP) criteria explicitly documented and enforced?', context:'Without clear ICP criteria, marketing and sales optimize for different definitions of quality.', options:['No criteria','Informal only','Documented but not enforced','Documented and usually enforced','Strictly enforced'], weight:9 },
+  { id:'mql-quality', stage:'lead', text:'What percentage of marketing-qualified leads are genuinely sales-ready?', context:'MQL inflation damages sales trust and creates preventable disqualification.', options:['Less than 20%','20-40%','40-60%','60-80%','More than 80%'], weight:10 },
+  { id:'qualification-standard', stage:'qualification', text:'Is qualification standardized across all sales reps?', context:'Qualification variance creates inconsistent pipeline quality and makes forecasting unreliable.', options:['No standard','Informal guidance','Written standard but inconsistent','Mostly standardized','Fully standardized'], weight:10 },
+  { id:'disqualification-criteria', stage:'qualification', text:'Are disqualification criteria clear and consistently applied?', context:'Without clear disqualification rules, weak opportunities consume disproportionate sales capacity.', options:['No criteria','Unclear criteria','Clear but inconsistent','Clear and usually applied','Clear and strictly applied'], weight:9 },
+  { id:'business-impact', stage:'qualification', text:'Do reps qualify based on measurable business impact, not just interest?', context:'Interest-based qualification creates bloated pipelines. Impact-based qualification predicts revenue.', options:['Rarely','Sometimes','Often','Usually','Always'], weight:10 },
+  { id:'decision-maker', stage:'qualification', text:'Are decision-makers identified before qualification?', context:'Opportunities without decision-maker access stall predictably.', options:['Rarely','Sometimes','Often','Usually','Always'], weight:8 },
+  { id:'contact-speed', stage:'conversation', text:'How quickly are qualified leads contacted by sales?', context:'Contact speed directly impacts conversion. Leads contacted within 5 minutes convert far higher than those contacted after 30 minutes.', options:['More than 48 hours','24-48 hours','4-24 hours','1-4 hours','Within 1 hour'], weight:9 },
+  { id:'followup-system', stage:'conversation', text:'Are follow-ups systematically triggered and tracked?', context:'Manual follow-up creates leakage. Systematic follow-up prevents it.', options:['No system','Manual tracking','Partially automated','Mostly automated','Fully systematic'], weight:7 },
+  { id:'next-steps', stage:'conversation', text:'Do first conversations consistently produce clear next steps?', context:'Conversations without concrete next steps rarely progress to opportunities.', options:['Rarely','Sometimes','Often','Usually','Always'], weight:9 },
+  { id:'pain-discovery', stage:'conversation', text:'Is specific business pain established in initial conversations?', context:'Solutions without established pain create low-urgency opportunities that stall.', options:['Rarely','Sometimes','Often','Usually','Always'], weight:10 },
+  { id:'urgency', stage:'conversation', text:'Is urgency uncovered and validated during initial conversations?', context:'Opportunities without urgency extend sales cycles unpredictably.', options:['Rarely','Sometimes','Often','Usually','Always'], weight:8 },
+  { id:'conversation-to-meeting', stage:'meeting', text:'What percentage of qualified conversations result in scheduled meetings?', context:'Low conversion suggests qualification criteria may not match actual buyer readiness.', options:['Less than 20%','20-40%','40-60%','60-80%','More than 80%'], weight:9 },
+  { id:'meeting-stakeholders', stage:'meeting', text:'Are meetings consistently accepted by relevant stakeholders?', context:'Meetings with wrong stakeholders delay opportunity progression.', options:['Rarely','Sometimes','Often','Usually','Always'], weight:8 },
+  { id:'opportunity-criteria', stage:'opportunity', text:'Is opportunity creation based on validated buying signals?', context:'Creating opportunities too early inflates pipeline. Too late compresses sales cycles unnecessarily.', options:['No clear criteria','Informal criteria','Documented, inconsistent use','Clear criteria, usually followed','Strict validated criteria'], weight:10 },
+  { id:'opportunity-timing', stage:'opportunity', text:'Are opportunities created at the right stage of buyer readiness?', context:'Timing affects forecast accuracy and sales efficiency.', options:['Often too early','Sometimes too early','Usually appropriate','Always appropriate','Validated timing process'], weight:8 },
+  { id:'stalled-visibility', stage:'opportunity', text:'Are stalled opportunities quickly identified and addressed?', context:'Stalled opportunities that remain in pipeline damage forecast accuracy and hide capacity problems.', options:['Not tracked','Tracked informally','Tracked but slow response','Addressed within 2 weeks','Systematic stall protocols'], weight:7 },
+];
+const STAGES = [
+  { id:'lead', label:'Lead' }, { id:'qualification', label:'Qualification' },
+  { id:'conversation', label:'Conversation' }, { id:'meeting', label:'Meeting' }, { id:'opportunity', label:'Opportunity' },
+];
+const SCALE_VALUES = {0:0,1:25,2:50,3:75,4:100};
 
-    <p>
-      Diagnose where leads are being lost between lead generation
-      and opportunity creation.
-    </p>
+/* ---------------- scoring engine (deterministic) ---------------- */
+function calculateStageScore(signals){
+  if(signals.length===0) return 50;
+  const totalWeight = signals.reduce((s,x)=>s+x.weight,0);
+  const weighted = signals.reduce((s,x)=>s+SCALE_VALUES[x.answer]*x.weight,0);
+  return Math.round(weighted/totalWeight);
+}
+const MECHANISM = {
+  'lead-qualification':'Inconsistent lead qualification criteria or an unclear ICP definition is letting sales engage with poor-fit prospects.',
+  'qualification-conversation':'Qualified leads are not being contacted quickly enough, or initial outreach is failing to establish value.',
+  'conversation-meeting':'Discovery conversations are not producing concrete next steps or failing to establish urgency.',
+  'meeting-opportunity':'Meetings are occurring with the wrong stakeholders, or without validated buying signals.',
+};
+const IMPLICATION = {
+  'lead-qualification':'Sales capacity is wasted on unqualified prospects — pipeline looks healthy but hides low-quality opportunities.',
+  'qualification-conversation':'Qualified demand loses interest before sales engagement, a real disadvantage in fast-moving markets.',
+  'conversation-meeting':'Sales conversations fail to build urgency; opportunities stay uncommitted and cycle time extends.',
+  'meeting-opportunity':'Meeting activity is high but pipeline growth is low — an inefficient use of prospect and sales time.',
+};
+const RECOMMENDATION = {
+  'lead-qualification':'Standardize qualification criteria before sales acceptance.',
+  'qualification-conversation':'Implement systematic rapid-response contact protocols.',
+  'conversation-meeting':'Establish required next-step criteria for every discovery call.',
+  'meeting-opportunity':'Define validated buying signals required for opportunity creation.',
+};
+const FIRST_MOVE = {
+  'lead-qualification':'Document your ICP as a 5-point checklist. Require sales to confirm fit before accepting a lead.',
+  'qualification-conversation':'Set a 4-hour maximum response time for qualified leads. Track and report violations.',
+  'conversation-meeting':'Add a required next-step field in your CRM. No conversation closes without it.',
+  'meeting-opportunity':'Define three mandatory buying signals. No opportunity is created without all three validated.',
+};
+const STAGE_FIRST_MOVE = {
+  lead:'Audit the last 50 leads against your stated ICP. Calculate the match rate.',
+  qualification:'Review the last 20 qualified opportunities. Identify which should have been disqualified.',
+  conversation:'Record the next 10 discovery calls. Score them against a standardized framework.',
+  meeting:'Track meeting-to-opportunity conversion per rep. Identify outliers.',
+  opportunity:'Review opportunities created in the last 30 days. Validate that buying signals were present.',
+};
+const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
 
-    <a class="button"
-       href="https://github.com/kartikclarityofficial/lead-to-opportunity-leak-detector">
-      View Repository
-    </a>
-  </main>
+function calculateDiagnostic(answers){
+  const signals = Object.entries(answers).map(([questionId,answer])=>{
+    const q = QUESTIONS.find(q=>q.id===questionId);
+    if(!q) return null;
+    const numeric = SCALE_VALUES[answer];
+    const impact = numeric>=75?'positive':numeric<=25?'negative':'neutral';
+    return {questionId,answer,impact,weight:q.weight,stage:q.stage};
+  }).filter(Boolean);
 
+  const stageHealth = STAGES.map(({id})=>{
+    const stageSignals = signals.filter(s=>s.stage===id);
+    return {stage:id, score:calculateStageScore(stageSignals), signals:stageSignals};
+  });
+  const overallScore = Math.round(stageHealth.reduce((s,x)=>s+x.score,0)/stageHealth.length);
+  const healthBand = overallScore>=85?'strong':overallScore>=70?'healthy':overallScore>=50?'leakage':'critical';
+
+  const leaks = [];
+  for(let i=0;i<STAGES.length-1;i++){
+    const cur=stageHealth[i], next=stageHealth[i+1];
+    const drop=cur.score-next.score, avg=(cur.score+next.score)/2;
+    if(drop>15||avg<60){
+      const severity = drop>30||avg<40?'critical':drop>20||avg<50?'high':drop>10||avg<60?'moderate':'low';
+      const key=`${cur.stage}-${next.stage}`;
+      leaks.push({
+        from:cur.stage, to:next.stage, severity,
+        signals:[...cur.signals,...next.signals].filter(s=>s.impact==='negative'),
+        explanation:`${severity==='critical'?'Critical momentum loss':severity==='high'?'Significant friction':severity==='moderate'?'Observable friction':'Minor friction'} detected between ${cap(cur.stage)} and ${cap(next.stage)}. Qualified demand is not converting efficiently to the next stage.`,
+        mechanism: MECHANISM[key]||'Process friction is preventing natural stage progression.',
+        implication: IMPLICATION[key]||'Revenue predictability and sales efficiency are negatively impacted.',
+        recommendation: RECOMMENDATION[key]||'Review and standardize stage transition requirements.',
+        firstMove: FIRST_MOVE[key]||'Audit the current process and identify the top 3 friction points.',
+      });
+    }
+  }
+  const severityOrder={critical:4,high:3,moderate:2,low:1};
+  const primaryLeak=[...leaks].sort((a,b)=>severityOrder[b.severity]-severityOrder[a.severity])[0]||null;
+
+  const recs=[];
+  leaks.forEach(leak=>{
+    const priority=leak.severity==='critical'?'critical':leak.severity==='high'?'high':leak.severity==='moderate'?'medium':'low';
+    recs.push({action:leak.recommendation, why:leak.mechanism, priority, expectedEffect:`Reduce leakage between ${cap(leak.from)} and ${cap(leak.to)}.`, firstMove:leak.firstMove});
+  });
+  stageHealth.forEach(sh=>{
+    if(sh.score<60){
+      recs.push({
+        action:`Strengthen ${cap(sh.stage)} stage processes`,
+        why:`${cap(sh.stage)} diagnostic score indicates structural process weakness.`,
+        priority: sh.score<40?'critical':sh.score<50?'high':'medium',
+        expectedEffect:`Improve overall ${cap(sh.stage)} health and downstream conversion.`,
+        firstMove: STAGE_FIRST_MOVE[sh.stage],
+      });
+    }
+  });
+  const pOrder={critical:4,high:3,medium:2,low:1};
+  const recommendations = recs.sort((a,b)=>pOrder[b.priority]-pOrder[a.priority]).slice(0,5);
+  return {overallScore, healthBand, leaks, primaryLeak, stageHealth, recommendations, signals};
+}
+
+const SEVERITY_COLOR = { critical:'var(--critical)', high:'var(--high)', moderate:'var(--moderate)', low:'var(--low)' };
+const BAND_LABEL = { strong:'Strong', healthy:'Healthy with friction', leakage:'Leakage detected', critical:'Critical leakage' };
+const BAND_COLOR = { strong:'var(--sealed)', healthy:'var(--low)', leakage:'var(--high)', critical:'var(--critical)' };
+
+/* ---------------- signature component: pressure gauge ---------------- */
+function Gauge({score}){
+  const [mounted,setMounted]=useState(false);
+  useEffect(()=>{ const t=setTimeout(()=>setMounted(true),80); return ()=>clearTimeout(t); },[]);
+  const angle = -90 + (mounted? (score/100)*180 : 0);
+  const color = score>=85?'var(--sealed)':score>=70?'var(--low)':score>=50?'var(--high)':'var(--critical)';
+  return (
+    <div style={{width:260,height:150,position:'relative',margin:'0 auto'}}>
+      <div style={{position:'absolute',top:0,left:0,width:260,height:260,borderRadius:'50%',overflow:'hidden',height:150}}>
+        <div style={{width:260,height:260,borderRadius:'50%',background:'conic-gradient(from 180deg, var(--critical) 0deg 54deg, var(--high) 54deg 90deg, var(--moderate) 90deg 126deg, var(--low) 126deg 162deg, var(--sealed) 162deg 180deg, transparent 180deg 360deg)'}}/>
+      </div>
+      <div style={{position:'absolute',top:22,left:22,width:216,height:216,borderRadius:'50%',background:'var(--paper)'}}/>
+      <div className="needle" style={{position:'absolute',bottom:0,left:'50%',width:3,height:104,background:'var(--ink)',transformOrigin:'bottom center',transform:`rotate(${angle}deg)`,borderRadius:2}}/>
+      <div style={{position:'absolute',bottom:-7,left:'50%',width:16,height:16,marginLeft:-8,borderRadius:'50%',background:'var(--ink)',border:'3px solid var(--paper)'}}/>
+      <div className="mono" style={{position:'absolute',bottom:14,left:14,fontSize:10,color:'var(--muted-2)'}}>0</div>
+      <div className="mono" style={{position:'absolute',bottom:14,right:14,fontSize:10,color:'var(--muted-2)'}}>100</div>
+      <div style={{position:'absolute',top:36,left:0,right:0,textAlign:'center'}}>
+        <div className="disp" style={{fontSize:52,fontWeight:700,color,lineHeight:1}}>{mounted?score:0}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- signature component: flow / pipe diagram ---------------- */
+function FlowDiagram({result}){
+  const getStatus = (stageId)=>{
+    if(!result) return 'default';
+    const sh = result.stageHealth.find(s=>s.stage===stageId);
+    if(!sh) return 'default';
+    if(result.leaks.some(l=>l.from===stageId||l.to===stageId)) return 'leak';
+    if(sh.score>=75) return 'strong';
+    if(sh.score>=60) return 'healthy';
+    return 'watch';
+  };
+  const getConn = (from,to)=>{
+    if(!result) return 'default';
+    const l = result.leaks.find(l=>l.from===from&&l.to===to);
+    return l? l.severity : 'healthy';
+  };
+  const statusColor = { leak:'var(--high)', strong:'var(--sealed)', healthy:'var(--muted-2)', watch:'var(--moderate)', default:'var(--line)' };
+  const connColor = (c)=> c==='critical'?'var(--critical)':c==='high'?'var(--high)':c==='moderate'?'var(--moderate)':c==='default'?'var(--line)':'var(--sealed)';
+
+  return (
+    <div className="w-full">
+      <div className="flex flex-col sm:flex-row sm:items-stretch gap-0">
+        {STAGES.map((stage,i)=>{
+          const status = getStatus(stage.id);
+          const next = STAGES[i+1];
+          const conn = next? getConn(stage.id,next.id) : null;
+          const sh = result?.stageHealth.find(s=>s.stage===stage.id);
+          const leaking = conn==='critical'||conn==='high';
+          return (
+            <React.Fragment key={stage.id}>
+              <div className="bracket" style={{flex:1,padding:'18px 14px',textAlign:'center',background:'var(--panel)',border:`1.5px solid ${status==='default'?'var(--line)':statusColor[status]}`}}>
+                <div className="mono" style={{fontSize:10,color:'var(--muted-2)',marginBottom:4}}>STAGE {String(i+1).padStart(2,'0')}</div>
+                <div className="disp" style={{fontSize:13,fontWeight:600,letterSpacing:'0.03em',textTransform:'uppercase',color:'var(--ink)'}}>{stage.label}</div>
+                {result && (
+                  <div style={{marginTop:8,display:'flex',alignItems:'center',justifyContent:'center',gap:5}}>
+                    {status==='leak' && <AlertTri className="w-3.5 h-3.5" style={{color:'var(--high)'}}/>}
+                    {status==='strong' && <CheckCirc className="w-3.5 h-3.5" style={{color:'var(--sealed)'}}/>}
+                    {status==='watch' && <AlertCirc className="w-3.5 h-3.5" style={{color:'var(--moderate)'}}/>}
+                    <span className="mono" style={{fontSize:12,color:'var(--muted)'}}>{sh?.score ?? '--'}</span>
+                  </div>
+                )}
+              </div>
+              {next && (
+                <div style={{flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',height:26,width:'100%'}} className="sm:!h-auto sm:!w-8">
+                  <svg className="hidden sm:block" width="32" height="100%" viewBox="0 0 32 60" preserveAspectRatio="none" style={{height:'100%',minHeight:60}}>
+                    <line x1="0" y1="30" x2="32" y2="30" stroke={connColor(conn)} strokeWidth="2" className={leaking?'flow-line':''} />
+                    {leaking && <circle cx="16" cy="30" r="2.6" fill={connColor(conn)} />}
+                  </svg>
+                  <svg className="sm:hidden" width="100%" height="26" viewBox="0 0 60 26" preserveAspectRatio="none" style={{width:'100%'}}>
+                    <line x1="30" y1="0" x2="30" y2="26" stroke={connColor(conn)} strokeWidth="2" className={leaking?'flow-line':''} />
+                    {leaking && <circle cx="30" cy="13" r="2.6" fill={connColor(conn)} />}
+                  </svg>
+                </div>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- command palette ---------------- */
+function CommandPalette({open,onClose,commands}){
+  const [search,setSearch]=useState('');
+  const inputRef=useRef(null);
+  useEffect(()=>{ if(open){ setSearch(''); setTimeout(()=>inputRef.current?.focus(),10); } },[open]);
+  useEffect(()=>{
+    const onKey=(e)=> e.key==='Escape' && onClose();
+    if(open) window.addEventListener('keydown',onKey);
+    return ()=>window.removeEventListener('keydown',onKey);
+  },[open,onClose]);
+  if(!open) return null;
+  const filtered = commands.filter(c=>c.label.toLowerCase().includes(search.toLowerCase()));
+  return (
+    <div onClick={onClose} role="dialog" aria-modal="true" aria-label="Command palette"
+      style={{position:'fixed',inset:0,background:'rgba(18,21,26,0.55)',zIndex:50,display:'flex',justifyContent:'center',alignItems:'flex-start',paddingTop:96,padding:'96px 16px 0'}}>
+      <div onClick={e=>e.stopPropagation()} style={{width:'100%',maxWidth:520,background:'#fff',border:'1px solid var(--line)',boxShadow:'0 24px 64px rgba(18,21,26,0.25)'}}>
+        <div style={{display:'flex',alignItems:'center',gap:12,padding:'14px 16px',borderBottom:'1px solid var(--line)'}}>
+          <SearchIc className="w-4 h-4" style={{color:'var(--muted-2)',flexShrink:0}}/>
+          <input ref={inputRef} type="text" placeholder="Jump to..." value={search} onChange={e=>setSearch(e.target.value)}
+            style={{flex:1,outline:'none',border:'none',fontSize:14,color:'var(--ink)',fontFamily:'inherit'}}/>
+          <span className="kbd">ESC</span>
+        </div>
+        <div style={{maxHeight:280,overflowY:'auto'}}>
+          {filtered.length===0 && <div style={{padding:'24px 16px',fontSize:13,color:'var(--muted-2)',textAlign:'center'}}>No matching command.</div>}
+          {filtered.map((cmd,i)=>(
+            <button key={cmd.id} onClick={()=>{cmd.action();onClose();}} disabled={cmd.disabled}
+              style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',padding:'11px 16px',textAlign:'left',fontSize:14,
+                borderTop:i!==0?'1px solid #F1F0EA':'none', color:cmd.disabled?'var(--muted-2)':'var(--ink)', background:'transparent'}}
+              onMouseEnter={e=>!cmd.disabled && (e.currentTarget.style.background='#FAFAF6')}
+              onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+              <span style={{fontWeight:500}}>{cmd.label}</span>
+              <span className="kbd">{cmd.shortcut}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- views ---------------- */
+function HomeView({onStart,onMethod,result}){
+  return (
+    <div className="fade-in" style={{position:'relative'}}>
+      <div className="grid-bg" style={{position:'absolute',top:0,left:0,right:0,height:420,zIndex:0}}/>
+      <div style={{maxWidth:880,margin:'0 auto',padding:'72px 20px 24px',position:'relative',zIndex:1}}>
+        <div style={{textAlign:'center',marginBottom:56}}>
+          <div className="mono bracket" style={{display:'inline-block',padding:'5px 14px',marginBottom:22,fontSize:11,letterSpacing:'0.16em',textTransform:'uppercase',color:'var(--muted)'}}>
+            Revenue diagnostic instrument
+          </div>
+          <h1 className="disp" style={{fontSize:'clamp(2.4rem,6vw,4.2rem)',fontWeight:700,lineHeight:1.02,marginBottom:20,color:'var(--ink)'}}>
+            Lead <span style={{color:'var(--signal)'}}>→</span> Opportunity<br/>Leak Detector
+          </h1>
+          <p style={{fontSize:'1.15rem',color:'var(--muted)',maxWidth:520,margin:'0 auto 34px',lineHeight:1.6}}>
+            Find exactly where qualified demand disappears before it becomes pipeline — with a transparent, evidence-based diagnostic.
+          </p>
+          <div style={{display:'flex',flexDirection:'column',gap:12,alignItems:'center'}}>
+            <div style={{display:'flex',gap:12,flexWrap:'wrap',justifyContent:'center'}}>
+              <button onClick={onStart} className="btn-primary" style={{padding:'14px 28px',fontWeight:600,fontSize:14,display:'flex',alignItems:'center',gap:8}}>
+                Run the diagnostic <ArrowRight className="w-4 h-4"/>
+              </button>
+              <button onClick={onMethod} className="btn-ghost" style={{padding:'14px 28px',fontWeight:600,fontSize:14}}>
+                Explore the method
+              </button>
+            </div>
+            <span className="mono" style={{fontSize:11,color:'var(--muted-2)'}}>17 questions · ~4 minutes · no signup</span>
+          </div>
+        </div>
+
+        <FlowDiagram result={result}/>
+
+        <div style={{marginTop:56,textAlign:'center'}}>
+          <p style={{color:'var(--muted-2)',fontSize:14,marginBottom:4}}>Your CRM tells you what happened.</p>
+          <p className="disp" style={{color:'var(--ink)',fontWeight:600,fontSize:16}}>This tells you where opportunity is leaking — and why.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DiagnosticView({index,answers,onAnswer,onNext,onPrev}){
+  const question = QUESTIONS[index];
+  const progress = ((index+1)/QUESTIONS.length)*100;
+  const selected = answers[question.id];
+  return (
+    <div style={{maxWidth:640,margin:'0 auto',padding:'52px 20px 60px'}}>
+      <div style={{marginBottom:36}}>
+        <div className="mono" style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'var(--muted)',marginBottom:8}}>
+          <span>Q{index+1} / {QUESTIONS.length}</span><span>{Math.round(progress)}%</span>
+        </div>
+        <div style={{height:3,background:'var(--line)',overflow:'hidden'}}>
+          <div style={{height:'100%',background:'var(--signal)',width:`${progress}%`,transition:'width .3s ease'}}/>
+        </div>
+      </div>
+      <div key={question.id} className="fade-in">
+        <span className="mono" style={{display:'inline-block',marginBottom:14,padding:'5px 10px',background:'var(--signal-dim)',color:'var(--signal)',fontSize:10,textTransform:'uppercase',letterSpacing:'0.12em'}}>
+          {question.stage}
+        </span>
+        <h2 className="disp" style={{fontSize:'clamp(1.5rem,3.4vw,2rem)',fontWeight:600,marginBottom:12,lineHeight:1.25,color:'var(--ink)'}}>{question.text}</h2>
+        <p style={{color:'var(--muted)',marginBottom:28,lineHeight:1.6,fontSize:15}}>{question.context}</p>
+        <div role="radiogroup" aria-label={question.text} style={{display:'flex',flexDirection:'column',gap:9,marginBottom:36}}>
+          {question.options.map((opt,i)=>{
+            const active = selected===i;
+            return (
+              <button key={i} role="radio" aria-checked={active} onClick={()=>onAnswer(question.id,i)}
+                style={{width:'100%',padding:'15px 20px',textAlign:'left',border:`1.5px solid ${active?'var(--ink)':'var(--line)'}`,
+                  background:active?'var(--ink)':'var(--panel)',color:active?'#fff':'var(--ink)',
+                  display:'flex',justifyContent:'space-between',alignItems:'center',transition:'all .15s ease'}}
+                onMouseEnter={e=>{ if(!active) e.currentTarget.style.borderColor='var(--signal)'; }}
+                onMouseLeave={e=>{ if(!active) e.currentTarget.style.borderColor='var(--line)'; }}>
+                <span style={{fontWeight:500,fontSize:14}}>{opt}</span>
+                <div style={{width:15,height:15,borderRadius:'50%',border:`2px solid ${active?'#fff':'var(--line)'}`,background:active?'#fff':'transparent',flexShrink:0}}/>
+              </button>
+            );
+          })}
+        </div>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:22,borderTop:'1px solid var(--line)'}}>
+          <button onClick={onPrev} disabled={index===0} style={{display:'flex',alignItems:'center',gap:7,padding:'10px 6px',fontSize:14,color:'var(--muted)',background:'transparent',border:'none',opacity:index===0?0.3:1,cursor:index===0?'not-allowed':'pointer'}}>
+            <ArrowLeft className="w-4 h-4"/> Previous
+          </button>
+          <button onClick={onNext} disabled={selected===undefined} className="btn-primary" style={{padding:'11px 22px',fontSize:14,fontWeight:600,display:'flex',alignItems:'center',gap:8}}>
+            {index===QUESTIONS.length-1?'Complete diagnostic':'Next question'} <ArrowRight className="w-4 h-4"/>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AnalyzingView(){
+  const [step,setStep]=useState(0);
+  const steps=['Reading diagnostic signals','Calculating stage health','Mapping leakage points'];
+  useEffect(()=>{ const t=setInterval(()=>setStep(s=>Math.min(s+1,steps.length-1)),420); return ()=>clearInterval(t); },[]);
+  return (
+    <div style={{minHeight:'56vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'0 20px'}}>
+      <div style={{textAlign:'center'}}>
+        <div className="spin" style={{width:38,height:38,border:'2.5px solid var(--line)',borderTopColor:'var(--signal)',borderRadius:'50%',margin:'0 auto 22px'}}/>
+        <p className="disp" style={{fontSize:18,fontWeight:600,color:'var(--ink)'}}>{steps[step]}…</p>
+        <p className="mono" style={{color:'var(--muted-2)',fontSize:12,marginTop:6}}>Analyzing 17 diagnostic signals across 5 funnel stages</p>
+      </div>
+    </div>
+  );
+}
+
+function ResultsView({result,onReset,onMethod}){
+  const bandColor = BAND_COLOR[result.healthBand];
+  return (
+    <div className="fade-in" style={{maxWidth:800,margin:'0 auto',padding:'48px 20px 80px'}}>
+      <div style={{textAlign:'center',marginBottom:36}}>
+        <h1 className="disp" style={{fontSize:'clamp(1.8rem,4vw,2.4rem)',fontWeight:700,marginBottom:6,color:'var(--ink)'}}>Diagnostic results</h1>
+        <p style={{color:'var(--muted)'}}>Your lead-to-opportunity assessment is complete.</p>
+      </div>
+
+      <div style={{marginBottom:40}}>
+        <div className="mono" style={{textAlign:'center',fontSize:11,textTransform:'uppercase',letterSpacing:'0.16em',color:'var(--muted-2)',marginBottom:6}}>Lead-to-opportunity health</div>
+        <Gauge score={result.overallScore}/>
+        <div style={{textAlign:'center',marginTop:6}}>
+          <span className="disp" style={{fontWeight:600,fontSize:16,color:bandColor}}>{BAND_LABEL[result.healthBand]}</span>
+        </div>
+      </div>
+
+      {result.primaryLeak && (
+        <div className="bracket" style={{marginBottom:40,padding:'22px 24px',border:`1.5px solid ${SEVERITY_COLOR[result.primaryLeak.severity]}`,background:'var(--panel)'}}>
+          <div style={{display:'flex',gap:14,alignItems:'flex-start'}}>
+            <AlertTri className="w-5 h-5" style={{color:SEVERITY_COLOR[result.primaryLeak.severity],flexShrink:0,marginTop:2}}/>
+            <div style={{flex:1,minWidth:0}}>
+              <div className="mono" style={{fontSize:11,textTransform:'uppercase',letterSpacing:'0.12em',color:SEVERITY_COLOR[result.primaryLeak.severity],marginBottom:6}}>Primary leak detected</div>
+              <div className="disp" style={{fontSize:20,fontWeight:700,color:'var(--ink)',marginBottom:8}}>{cap(result.primaryLeak.from)} → {cap(result.primaryLeak.to)}</div>
+              <p style={{color:'var(--muted)',fontSize:14,lineHeight:1.6,marginBottom:12}}>{result.primaryLeak.explanation}</p>
+              <div className="mono" style={{display:'inline-flex',alignItems:'center',gap:6,padding:'5px 10px',border:`1px solid ${SEVERITY_COLOR[result.primaryLeak.severity]}`,color:SEVERITY_COLOR[result.primaryLeak.severity],fontSize:11,fontWeight:600}}>
+                <TrendDown className="w-3.5 h-3.5"/> {result.primaryLeak.severity.toUpperCase()} SEVERITY
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={{marginBottom:44}}>
+        <h2 className="disp" style={{fontSize:19,fontWeight:600,marginBottom:20,textAlign:'center',color:'var(--ink)'}}>Diagnostic map</h2>
+        <FlowDiagram result={result}/>
+      </div>
+
+      {result.leaks.length>0 && (
+        <div style={{marginBottom:44}}>
+          <h2 className="disp" style={{fontSize:19,fontWeight:600,marginBottom:16,color:'var(--ink)'}}>Detected leaks</h2>
+          <div style={{display:'flex',flexDirection:'column',gap:14}}>
+            {result.leaks.map((leak,i)=>(
+              <div key={i} style={{border:'1px solid var(--line)',padding:20,background:'var(--panel)'}}>
+                <div style={{marginBottom:14}}>
+                  <div className="disp" style={{fontSize:16,fontWeight:700,color:'var(--ink)',marginBottom:6}}>{cap(leak.from)} → {cap(leak.to)}</div>
+                  <span className="mono" style={{display:'inline-block',padding:'3px 8px',border:`1px solid ${SEVERITY_COLOR[leak.severity]}`,color:SEVERITY_COLOR[leak.severity],fontSize:10,fontWeight:600}}>{leak.severity.toUpperCase()}</span>
+                </div>
+                <div style={{display:'flex',flexDirection:'column',gap:10,fontSize:14}}>
+                  <div><div style={{fontWeight:600,color:'var(--ink)',marginBottom:2}}>What this means</div><p style={{color:'var(--muted)',margin:0}}>{leak.explanation}</p></div>
+                  <div><div style={{fontWeight:600,color:'var(--ink)',marginBottom:2}}>Likely mechanism</div><p style={{color:'var(--muted)',margin:0}}>{leak.mechanism}</p></div>
+                  <div><div style={{fontWeight:600,color:'var(--ink)',marginBottom:2}}>Business implication</div><p style={{color:'var(--muted)',margin:0}}>{leak.implication}</p></div>
+                  <div style={{paddingTop:10,borderTop:'1px solid #F1F0EA'}}><span className="mono" style={{fontSize:11,color:'var(--muted-2)'}}>{leak.signals.length} signal{leak.signals.length!==1?'s':''} contributed to this diagnosis</span></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {result.recommendations.length>0 && (
+        <div style={{marginBottom:44}}>
+          <h2 className="disp" style={{fontSize:19,fontWeight:600,marginBottom:16,color:'var(--ink)'}}>Recommended actions</h2>
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {result.recommendations.map((rec,i)=>{
+              const pColor = {critical:'var(--critical)',high:'var(--high)',medium:'var(--moderate)',low:'var(--muted-2)'}[rec.priority];
+              return (
+                <div key={i} style={{padding:18,border:'1px solid var(--line)',background:'var(--panel)'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',gap:12,marginBottom:10}}>
+                    <div style={{fontWeight:700,fontSize:14,color:'var(--ink)',lineHeight:1.35}}>{rec.action}</div>
+                    <span className="mono" style={{padding:'3px 8px',fontSize:10,textTransform:'uppercase',color:'#fff',background:pColor,flexShrink:0,height:'fit-content'}}>{rec.priority}</span>
+                  </div>
+                  <div style={{display:'flex',flexDirection:'column',gap:8,fontSize:14}}>
+                    <p style={{color:'var(--muted)',margin:0}}>{rec.why}</p>
+                    <div style={{paddingTop:8,borderTop:'1px solid #F1F0EA'}}>
+                      <div className="mono" style={{fontSize:10,fontWeight:600,color:'var(--muted-2)',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:2}}>First move</div>
+                      <p style={{color:'var(--ink)',fontWeight:500,margin:0}}>{rec.firstMove}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div style={{marginBottom:36,padding:26,background:'var(--ink)',color:'#fff'}}>
+        <p className="mono" style={{color:'#9098A8',fontSize:11,textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:8}}>Diagnostic insight</p>
+        <p style={{fontSize:17,lineHeight:1.6,margin:0}}>
+          Your funnel isn't necessarily short on leads. The diagnostic indicates the larger issue may be what happens after{' '}
+          {result.primaryLeak? cap(result.primaryLeak.from) : 'qualification'}.
+        </p>
+      </div>
+
+      <div style={{display:'flex',gap:12,justifyContent:'center',flexWrap:'wrap'}}>
+        <button onClick={onReset} className="btn-ghost" style={{padding:'13px 26px',fontWeight:600,fontSize:14}}>Run new diagnostic</button>
+        <button onClick={onMethod} className="btn-primary" style={{padding:'13px 26px',fontWeight:600,fontSize:14,display:'flex',alignItems:'center',gap:8}}>Read the method <ArrowRight className="w-4 h-4"/></button>
+      </div>
+    </div>
+  );
+}
+
+function MethodView(){
+  const steps=[
+    {Icon:TargetIc,stage:'Lead',description:'Raw demand enters the system.'},
+    {Icon:SearchIc,stage:'Qualification',description:'Demand is validated against ICP criteria.'},
+    {Icon:ActivityIc,stage:'Conversation',description:'Sales engages and establishes value.'},
+    {Icon:ZapIc,stage:'Meeting',description:'Stakeholders commit time.'},
+    {Icon:TrendDown,stage:'Opportunity',description:'Validated buying intent creates pipeline.'},
+  ];
+  const how=[
+    ['Diagnostic assessment','A structured set of questions examines process quality, speed, standardization, and signal validation at each stage.'],
+    ['Signal collection','Each response generates a diagnostic signal. Signals are weighted by their predictive importance to stage health.'],
+    ['Stage health calculation','Signals within a stage combine into a 0–100 health score reflecting process maturity and execution quality.'],
+    ['Leak detection','Transitions where stage health drops sharply, or where average health falls below threshold, are classified as leaks.'],
+    ['Evidence mapping','Every leak is tied back to the specific responses that triggered it, for a transparent evidence trail.'],
+    ['Recommendation generation','Leak severity and stage weakness drive prioritized, actionable recommendations with a concrete first move.'],
+  ];
+  return (
+    <div className="fade-in" style={{maxWidth:640,margin:'0 auto',padding:'48px 20px 80px'}}>
+      <div style={{textAlign:'center',marginBottom:44}}>
+        <h1 className="disp" style={{fontSize:'clamp(1.8rem,4vw,2.4rem)',fontWeight:700,marginBottom:8,color:'var(--ink)'}}>The method</h1>
+        <p style={{color:'var(--muted)'}}>How the Leak Detector finds hidden revenue loss.</p>
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:38}}>
+        <div>
+          <h2 className="disp" style={{fontSize:16,fontWeight:700,marginBottom:10,color:'var(--ink)'}}>The problem</h2>
+          <p style={{color:'var(--muted)',lineHeight:1.7,fontSize:14}}>
+            Most revenue teams track conversion rates between funnel stages. But conversion rates alone don't reveal why qualified leads
+            disappear — they don't show where process breaks down, handoffs fail, or qualification standards weaken. This tool examines
+            the operational mechanics between stages to find the specific points where momentum is lost.
+          </p>
+        </div>
+
+        <div style={{padding:22,background:'var(--panel)',border:'1px solid var(--line)'}} className="bracket">
+          <h3 className="mono" style={{fontSize:12,fontWeight:600,marginBottom:20,textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--ink)'}}>The five-stage journey</h3>
+          <div style={{display:'flex',flexDirection:'column',gap:18}}>
+            {steps.map((s,i)=>(
+              <div key={i} style={{display:'flex',gap:14,alignItems:'flex-start'}}>
+                <div style={{width:34,height:34,background:'var(--paper)',border:'1px solid var(--line)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  <s.Icon className="w-4 h-4" style={{color:'var(--signal)'}}/>
+                </div>
+                <div>
+                  <div style={{fontWeight:700,fontSize:14,color:'var(--ink)'}}>{s.stage}</div>
+                  <div style={{fontSize:14,color:'var(--muted)'}}>{s.description}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h2 className="disp" style={{fontSize:16,fontWeight:700,marginBottom:14,color:'var(--ink)'}}>How it works</h2>
+          <div style={{display:'flex',flexDirection:'column',gap:16}}>
+            {how.map(([title,body],i)=>(
+              <div key={i}>
+                <h3 style={{fontWeight:600,fontSize:14,color:'var(--ink)',marginBottom:3}}><span className="mono" style={{color:'var(--signal)'}}>{i+1}.</span> {title}</h3>
+                <p style={{fontSize:14,color:'var(--muted)',lineHeight:1.6,margin:0}}>{body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{padding:22,background:'var(--ink)',color:'#fff'}}>
+          <h3 className="mono" style={{fontWeight:600,marginBottom:12,fontSize:12,textTransform:'uppercase',letterSpacing:'0.1em'}}>What makes this different</h3>
+          <ul style={{listStyle:'none',padding:0,margin:0,display:'flex',flexDirection:'column',gap:9}}>
+            {['Diagnostic focus on why leaks occur, not just that they exist',
+              'Evidence-based findings tied to specific operational signals',
+              'Severity classification to prioritize limited improvement capacity',
+              'Actionable recommendations with a concrete first move',
+              'No CRM integration required — the diagnostic runs independently'].map((t,i)=>(
+              <li key={i} style={{display:'flex',gap:10,alignItems:'flex-start',fontSize:14,color:'#D6D8DE'}}>
+                <div style={{width:5,height:5,borderRadius:'50%',background:'var(--signal)',marginTop:7,flexShrink:0}}/>
+                <span>{t}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h2 className="disp" style={{fontSize:16,fontWeight:700,marginBottom:10,color:'var(--ink)'}}>Important limitations</h2>
+          <p style={{color:'var(--muted)',lineHeight:1.7,fontSize:14,marginBottom:10}}>
+            This diagnostic is <strong style={{color:'var(--ink)'}}>not</strong> a predictive model. It does not analyze actual CRM data, and it does not guarantee specific revenue outcomes.
+          </p>
+          <p style={{color:'var(--muted)',lineHeight:1.7,fontSize:14,margin:0}}>
+            It is a <strong style={{color:'var(--ink)'}}>structured assessment framework</strong> that helps revenue leaders systematically examine process health and identify likely friction points, based on established sales methodology principles.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- app shell ---------------- */
+function LeakDetectorApp(){
+  const [view,setView]=useState('home');
+  const [qIndex,setQIndex]=useState(0);
+  const [answers,setAnswers]=useState({});
+  const [result,setResult]=useState(null);
+  const [paletteOpen,setPaletteOpen]=useState(false);
+
+  const startDiagnostic=useCallback(()=>{ setQIndex(0); setAnswers({}); setResult(null); setView('diagnostic'); },[]);
+  const handleAnswer=useCallback((qid,idx)=>{ setAnswers(prev=>({...prev,[qid]:idx})); },[]);
+  const handleNext=useCallback(()=>{
+    if(qIndex<QUESTIONS.length-1) setQIndex(i=>i+1); else setView('analyzing');
+  },[qIndex]);
+  const handlePrev=useCallback(()=>setQIndex(i=>Math.max(0,i-1)),[]);
+
+  useEffect(()=>{
+    if(view==='analyzing'){
+      const t=setTimeout(()=>{ setResult(calculateDiagnostic(answers)); setView('results'); },1300);
+      return ()=>clearTimeout(t);
+    }
+  },[view,answers]);
+
+  useEffect(()=>{
+    const onKey=(e)=>{
+      if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); setPaletteOpen(v=>!v); }
+    };
+    window.addEventListener('keydown',onKey);
+    return ()=>window.removeEventListener('keydown',onKey);
+  },[]);
+
+  const commands = useMemo(()=>[
+    {id:'run',label:'Run diagnostic',action:startDiagnostic,shortcut:'D'},
+    {id:'results',label:'View results',action:()=>setView('results'),shortcut:'R',disabled:!result},
+    {id:'reset',label:'Reset assessment',action:startDiagnostic,shortcut:'X'},
+    {id:'method',label:'Explore the method',action:()=>setView('method'),shortcut:'M'},
+    {id:'home',label:'Go to overview',action:()=>setView('home'),shortcut:'H'},
+  ],[startDiagnostic,result]);
+
+  const nav=[
+    {id:'home',label:'Overview',Icon:HomeIc},
+    {id:'diagnostic',label:'Diagnostic',Icon:ActivityIc,action:startDiagnostic},
+    {id:'results',label:'Results',Icon:BarChartIc,disabled:!result},
+    {id:'method',label:'Method',Icon:FileTextIc},
+  ];
+
+  return (
+    <div style={{minHeight:'100vh'}}>
+      <header style={{borderBottom:'1px solid var(--line)',background:'rgba(242,241,234,0.9)',backdropFilter:'blur(8px)',position:'sticky',top:0,zIndex:30}}>
+        <div style={{maxWidth:920,margin:'0 auto',padding:'0 20px'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',height:58}}>
+            <button onClick={()=>setView('home')} style={{display:'flex',alignItems:'center',gap:10,background:'transparent',border:'none'}}>
+              <div style={{width:22,height:22,background:'var(--ink)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,borderRadius:2}}>
+                <DropletIc className="w-3 h-3" style={{color:'#fff'}}/>
+              </div>
+              <span className="disp" style={{fontWeight:600,fontSize:14,color:'var(--ink)'}}>Leak Detector</span>
+            </button>
+            <nav className="hidden sm:flex" style={{gap:2}}>
+              {nav.map(item=>{
+                const active = view===item.id;
+                return (
+                  <button key={item.id} onClick={()=>!item.disabled&&(item.action?item.action():setView(item.id))} disabled={item.disabled}
+                    style={{padding:'7px 13px',fontSize:12,fontWeight:600,display:'flex',alignItems:'center',gap:6,border:'none',
+                      background:active?'var(--ink)':'transparent',color:active?'#fff':item.disabled?'var(--muted-2)':'var(--muted)',
+                      cursor:item.disabled?'not-allowed':'pointer'}}>
+                    <item.Icon className="w-3.5 h-3.5"/> {item.label}
+                  </button>
+                );
+              })}
+            </nav>
+            <button onClick={()=>setPaletteOpen(true)} aria-label="Open command palette"
+              style={{display:'flex',alignItems:'center',gap:8,padding:'7px 11px',border:'1px solid var(--line)',fontSize:12,color:'var(--muted)',background:'transparent'}}>
+              <SearchIc className="w-3.5 h-3.5"/> <span className="hidden sm:inline kbd">⌘K</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main style={{paddingBottom:64}}>
+        {view==='home' && <HomeView onStart={startDiagnostic} onMethod={()=>setView('method')} result={result}/>}
+        {view==='diagnostic' && <DiagnosticView index={qIndex} answers={answers} onAnswer={handleAnswer} onNext={handleNext} onPrev={handlePrev}/>}
+        {view==='analyzing' && <AnalyzingView/>}
+        {view==='results' && result && <ResultsView result={result} onReset={startDiagnostic} onMethod={()=>setView('method')}/>}
+        {view==='method' && <MethodView/>}
+      </main>
+
+      <footer className="hidden sm:block" style={{borderTop:'1px solid var(--line)',marginTop:16}}>
+        <div style={{maxWidth:920,margin:'0 auto',padding:'32px 20px',textAlign:'center'}}>
+          <div className="mono" style={{display:'inline-block',padding:'4px 12px',border:'1px solid var(--line)',fontSize:10,letterSpacing:'0.14em',color:'var(--muted-2)',textTransform:'uppercase',marginBottom:10}}>
+            Lead-to-opportunity leak detector
+          </div>
+          <p style={{fontSize:12,color:'var(--muted-2)',margin:0}}>A structured revenue diagnostic. Not a predictive model.</p>
+        </div>
+      </footer>
+
+      <div className="sm:hidden" style={{position:'fixed',bottom:0,left:0,right:0,background:'#fff',borderTop:'1px solid var(--line)',zIndex:30}}>
+        <nav style={{display:'flex',justifyContent:'space-around'}}>
+          {nav.map(item=>{
+            const active=view===item.id;
+            return (
+              <button key={item.id} onClick={()=>!item.disabled&&(item.action?item.action():setView(item.id))} disabled={item.disabled}
+                style={{flex:1,padding:'9px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:3,fontSize:10,border:'none',background:'transparent',
+                  color:active?'var(--ink)':item.disabled?'var(--muted-2)':'var(--muted)'}}>
+                <item.Icon className="w-4 h-4"/> {item.label}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      <CommandPalette open={paletteOpen} onClose={()=>setPaletteOpen(false)} commands={commands}/>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<LeakDetectorApp/>);
+</script>
 </body>
 </html>
